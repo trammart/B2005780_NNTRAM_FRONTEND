@@ -24,18 +24,20 @@
         </div>
         <div class="mt-3 col-md-6">
             <div v-if="activeContact">
-                <h4>
+                <div class="row">
+                    <h4 class="col-8">
                     Chi tiết Liên hệ
                     <font-awesome-icon :icon="['fas', 'address-card']" />
                 </h4>
-                <ContactCard :contact="activeContact" />
                 <router-link :to="{
                     name: 'contact.edit',
                     params: { id: activeContact._id },
-                }">
+                }" class="col-4">
                     <span class="mt-2 badge badge-warning">
-                        <i class="fas fa-edit"></i> Hiệu chỉnh</span>
+                        <font-awesome-icon :icon="['fas', 'user-pen']" /> Hiệu chỉnh</span>
                 </router-link>
+                </div>
+                <ContactCard :contact="activeContact" />
             </div>
         </div>
     </div>
@@ -45,6 +47,8 @@ import ContactCard from "@/components/ContactCard.vue";
 import InputSearch from "@/components/InputSearch.vue";
 import ContactList from "@/components/ContactList.vue";
 import ContactService from "@/services/contact.service";
+import { useAuthStore } from '@/stores/auth.store';
+import { ref } from 'vue';
 export default {
     components: {
         ContactCard,
@@ -56,6 +60,7 @@ export default {
             contacts: [],
             activeIndex: -1,
             searchText: "",
+            user: [],
         };
     },
     watch: {
@@ -101,13 +106,27 @@ export default {
             this.activeIndex = -1;
         },
         async removeAllContacts() {
-            if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
-                try {
-                    await ContactService.deleteAll();
-                    this.refreshList();
-                } catch (error) {
-                    console.log(error);
+            const authStore = useAuthStore();
+            this.user = ref(authStore?.user);
+            if (this.user) {
+                if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
+                    try {
+                        await ContactService.deleteAll();
+                        this.$toast.warning('Xóa thành công!', { timeout: 1500 })
+                        this.refreshList();
+                    } catch (error) {
+                        console.log(error);
+                    }
                 }
+            } else {
+                this.$router.push({
+                    name: "contact.login",
+                    params: {
+                        pathMatch: this.$route.path.split("/").slice(1)
+                    },
+                    query: this.$route.query,
+                    hash: this.$route.hash,
+                });
             }
         },
         goToAddContact() {

@@ -9,6 +9,8 @@
 <script>
 import ContactForm from "@/components/ContactForm.vue";
 import ContactService from "@/services/contact.service";
+import { useAuthStore } from '@/stores/auth.store';
+import { ref } from 'vue';
 export default {
     components: {
         ContactForm,
@@ -17,6 +19,7 @@ export default {
         return {
             contact: {},
             message: "",
+            user: [],
         };
     },
     methods: {
@@ -24,14 +27,31 @@ export default {
             console.log(data);
             try {
                 await ContactService.create(data);
-                this.message = "Liên hệ được tạo thành công.";
+                this.$toast.success('Liên hệ được tạo thành công!', { timeout: 1500 })
+                this.$router.push({ name: "contactbook" });
             } catch (error) {
                 console.log(error);
             }
         },
+        getAuthStore() {
+            const authStore = useAuthStore();
+            this.user = ref(authStore?.user);
+            if (!this.user) {
+                this.$router.push({
+                    name: "contact.login",
+                    params: {
+                        pathMatch: this.$route.path.split("/").slice(1)
+                    },
+                    query: this.$route.query,
+                    hash: this.$route.hash,
+                });
+            }
+        },
     },
+
     created() {
         this.message = "";
+        this.getAuthStore();
     },
 };
 </script>

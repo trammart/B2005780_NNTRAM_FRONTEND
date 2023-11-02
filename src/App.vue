@@ -18,7 +18,11 @@ export default {
 
 <style>
 .page {
-  max-width: 400px;
+  max-width: 600px;
+  margin: auto;
+}
+.page-login {
+  max-width: 450px;
   margin: auto;
 }
 </style>
